@@ -174,9 +174,9 @@ cp jenkins/.env.example jenkins/.env
 docker compose -f jenkins/docker-compose.yaml up --build
 ```
 
-The `.env` file is intentionally ignored by Git. Jenkins requires `JENKINS_ADMIN_ID` and `JENKINS_ADMIN_PASSWORD` to initialize; the backend pipeline also requires `JWT_SECRET`, `MONGODB_URI`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, and `SERVER_SSL_KEY_STORE_PASSWORD`. To enable backend analysis, create a SonarQube user token at `http://localhost:9090` and set `SONAR_TOKEN` in `jenkins/.env`. After backend tests pass, Jenkins runs `backend/sonarscanner.sh` against the SonarQube service.
+The `.env` file is intentionally ignored by Git. Jenkins requires `JENKINS_ADMIN_ID` and `JENKINS_ADMIN_PASSWORD` to initialize; the backend pipeline also requires `JWT_SECRET`, `MONGODB_URI`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, and `SERVER_SSL_KEY_STORE_PASSWORD`. To enable backend analysis, create a SonarQube user token at `http://localhost:9090` and set `SONAR_TOKEN` in `jenkins/.env`. JCasC configures the Jenkins SonarQube server and token credential. After backend tests pass, Jenkins analyzes each backend service and waits for its Quality Gate.
 
-The scanner analyzes the compiled service projects without rerunning tests. For local scans, run the backend tests first, then `cd backend && ./sonarscanner.sh`; it reads `SONAR_TOKEN` from the environment or `backend/.env` and defaults to `http://localhost:9090`.
+Configure a SonarQube webhook at **Administration > Configuration > Webhooks** with URL `http://jenkins:8080/sonarqube-webhook/` (the trailing slash is required). This lets SonarQube send Quality Gate results back to Jenkins. For local scans, run the backend tests first, then `cd backend && ./sonarscanner.sh`; it reads `SONAR_TOKEN` from the environment or `backend/.env` and defaults to `http://localhost:9090`.
 
 ## Troubleshooting
 
