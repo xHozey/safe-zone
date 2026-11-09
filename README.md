@@ -157,11 +157,21 @@ cd backend/<service-directory>
 ./mvnw test
 ```
 
-Run frontend unit tests with:
+To generate the JaCoCo report and enforce the backend's minimum 80% line
+coverage for that service, run:
+
+```bash
+cd backend/<service-directory>
+./mvnw clean verify
+```
+
+The HTML report is written to `target/site/jacoco/index.html`.
+
+Run frontend unit tests and collect coverage with:
 
 ```bash
 cd frontend
-npm test
+npm test -- --coverage
 ```
 
 ## Jenkins
