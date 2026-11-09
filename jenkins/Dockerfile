@@ -15,3 +15,7 @@ RUN apt-get update \
 	&& docker --version
 
 USER jenkins
+
+COPY --chown=jenkins:jenkins plugins.txt /usr/share/jenkins/ref/plugins.txt
+
+RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt

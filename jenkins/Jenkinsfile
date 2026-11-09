@@ -52,6 +52,32 @@ pipeline {
             }
         }
 
+        stage('Backend SonarQube analysis') {
+            steps {
+                sh '''
+                    set -eu
+                    : "${SONAR_TOKEN:?Set SONAR_TOKEN in jenkins/.env}"
+
+                    attempt=0
+                    while [ "$attempt" -lt 60 ]; do
+                        if curl --fail --silent http://sonarqube:9000/api/system/status \
+                            | grep -q '"status"[[:space:]]*:[[:space:]]*"UP"'; then
+                            break
+                        fi
+                        attempt=$((attempt + 1))
+                        sleep 5
+                    done
+                    if [ "$attempt" -eq 60 ]; then
+                        echo 'SonarQube did not become ready at http://sonarqube:9000.' >&2
+                        exit 1
+                    fi
+
+                    cd backend
+                    SONAR_HOST_URL=http://sonarqube:9000 ./sonarscanner.sh
+                '''
+            }
+        }
+        
         stage('Deployment') {
             steps {
                 sh 'sh jenkins/deploy.sh'

@@ -1,18 +1,30 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
-export JWT_SECRET="$(grep '^JWT_SECRET=' .env | cut -d= -f2-)"
-export SERVER_SSL_KEY_STORE_PASSWORD="$(grep '^SERVER_SSL_KEY_STORE_PASSWORD=' .env | cut -d= -f2-)"
-export SONAR_TOKEN="$(grep '^SONAR_TOKEN=' .env | cut -d= -f2-)"
+backend_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+env_file="$backend_dir/.env"
+
+if [[ -z "${SONAR_TOKEN:-}" && -f "$env_file" ]]; then
+  SONAR_TOKEN="$(sed -n 's/^SONAR_TOKEN=//p' "$env_file" | head -n 1)"
+  export SONAR_TOKEN
+fi
+
+if [[ -z "${SONAR_TOKEN:-}" ]]; then
+  echo "Set SONAR_TOKEN in the environment or in $env_file." >&2
+  exit 1
+fi
+
+sonar_host_url="${SONAR_HOST_URL:-http://localhost:9090}"
 
 for service in gateway userService productService mediaService server; do
   echo "Scanning $service..."
-  cd "$service"
-  ./mvnw clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-    -Dsonar.projectKey="buy-01-$service" \
-    -Dsonar.projectName="buy-01-$service" \
-    -Dsonar.host.url=http://localhost:9090 \
-    -Dsonar.token="$SONAR_TOKEN"
-  cd ..
+  (
+    cd "$backend_dir/$service"
+    ./mvnw -B -ntp org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+      -Dsonar.projectKey="buy-01-$service" \
+      -Dsonar.projectName="buy-01-$service" \
+      -Dsonar.host.url="$sonar_host_url" \
+      -Dsonar.token="$SONAR_TOKEN"
+  )
 done

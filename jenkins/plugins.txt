@@ -5,3 +5,4 @@ junit
 job-dsl
 nodejs
 workflow-aggregator
+sonar:2.19.0
