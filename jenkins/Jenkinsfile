@@ -68,7 +68,7 @@ pipeline {
                         sleep 5
                     done
                     if [ "$attempt" -eq 60 ]; then
-                        echo 'SonarQube did not become ready at http://sonarqube:9000.' >&2
+                        echo 'SonarQube it did not become ready at http://sonarqube:9000.' >&2
                         exit 1
                     fi
 
