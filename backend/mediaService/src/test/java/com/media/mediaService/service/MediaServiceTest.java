@@ -47,6 +47,15 @@ class MediaServiceTest {
     }
 
     @Test
+    void uploadImageAcceptsJpegContentTypeIgnoringCase() throws Exception {
+        when(cloudinary.uploader().upload(any(byte[].class), anyMap()))
+                .thenReturn(Map.of("secure_url", "https://cdn.test/image.jpg"));
+        MockMultipartFile file = new MockMultipartFile("file", "image.jpg", "IMAGE/JPEG", jpegBytes());
+
+        assertEquals("https://cdn.test/image.jpg", service.uploadImage(file));
+    }
+
+    @Test
     void uploadImageRejectsEmptyFile() {
         MockMultipartFile file = new MockMultipartFile("file", "empty.png", "image/png", new byte[0]);
 
@@ -89,6 +98,16 @@ class MediaServiceTest {
     }
 
     @Test
+    void uploadImageReportsBlankCloudinaryUrlAsIoFailure() throws Exception {
+        when(cloudinary.uploader().upload(any(byte[].class), anyMap()))
+                .thenReturn(Map.of("secure_url", " "));
+        MockMultipartFile file = new MockMultipartFile("file", "image.png", "image/png", pngBytes());
+
+        assertEquals("Cloudinary did not return an image URL",
+                assertThrows(IOException.class, () -> service.uploadImage(file)).getMessage());
+    }
+
+    @Test
     void fetchImageReturnsBytesAndResponseContentType() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
@@ -117,10 +136,31 @@ class MediaServiceTest {
         server.verify();
     }
 
+    @Test
+    void fetchImageRejectsEmptyResponseBody() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        MediaService httpService = new MediaService(cloudinary, builder.build());
+        server.expect(requestTo("https://cdn.test/empty.png"))
+                .andRespond(withSuccess());
+
+        assertEquals("Cloudinary returned an empty image",
+                assertThrows(IllegalStateException.class,
+                        () -> httpService.fetchImage("https://cdn.test/empty.png")).getMessage());
+        server.verify();
+    }
+
     private byte[] pngBytes() throws IOException {
         BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         ImageIO.write(image, "png", output);
+        return output.toByteArray();
+    }
+
+    private byte[] jpegBytes() throws IOException {
+        BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        ImageIO.write(image, "jpg", output);
         return output.toByteArray();
     }
 }
