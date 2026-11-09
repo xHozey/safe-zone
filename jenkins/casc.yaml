@@ -21,6 +21,12 @@ credentials:
               id: sonarqube-token
               secret: "${SONAR_TOKEN}"
               description: SonarQube analysis token
+      - usernamePassword:
+          scope: GLOBAL
+          id: github-api
+          username: "${GITHUB_USERNAME}"
+          password: "${GITHUB_TOKEN}"
+          description: GitHub API access for Jenkins
 
 tool:
   nodejs:
@@ -54,23 +60,48 @@ unclassified:
 
 jobs:
   - script: |
-      pipelineJob('buy-01') {
-        description('Runs the Buy-01 Jenkins pipeline.')
-        triggers {
-          scm('* * * * *')
-        }
-        definition {
-          cpsScm {
-            scm {
-              git {
-                remote {
-                  url('https://github.com/xHozey/safe-zone.git')
+      multibranchPipelineJob('buy-01') {
+        description('Buy-01 CI pipeline.')
+
+        branchSources {
+          branchSource {
+            source {
+              github {
+                id('buy-01-github')
+                credentialsId('github-api')
+                repoOwner('xHozey')
+                repository('safe-zone')
+
+                traits {
+                  gitHubBranchDiscovery {
+                    strategyId(1)
+                  }
+
+                  gitHubPullRequestDiscovery {
+                    strategyId(1)
+                  }
                 }
-                branch('*/main')
               }
             }
+          }
+        }
+
+        factory {
+          workflowBranchProjectFactory {
             scriptPath('jenkins/Jenkinsfile')
-            lightweight(true)
+          }
+        }
+
+        triggers {
+          periodicFolderTrigger {
+            interval('5m')
+          }
+        }
+
+        orphanedItemStrategy {
+          discardOldItems {
+            daysToKeep(30)
+            numToKeep(20)
           }
         }
       }
