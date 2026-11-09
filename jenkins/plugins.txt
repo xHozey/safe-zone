@@ -7,3 +7,6 @@ nodejs
 workflow-aggregator
 sonar:2.19.0
 coverage
+github
+github-branch-source
+workflow-multibranch
