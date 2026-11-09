@@ -52,7 +52,7 @@ pipeline {
             }
         }
 
-        stage('Backend SonarQube analysis') {
+        stage('Backend SonarQube analysis 1') {
             steps {
                 script {
                     for (service in ['gateway', 'userService', 'productService', 'mediaService', 'server']) {
