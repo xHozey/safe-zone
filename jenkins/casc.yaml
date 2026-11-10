@@ -93,7 +93,7 @@ jobs:
 
         triggers {
           periodicFolderTrigger {
-            interval('5m')
+            interval('10s')
           }
         }
 
