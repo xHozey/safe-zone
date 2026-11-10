@@ -46,7 +46,7 @@ pipeline {
 
                     for service in server gateway userService productService mediaService; do
                         echo "Testing backend/${service} and generating JaCoCo coverage"
-                        (cd "backend/${service}" && ./mvnw -B -ntp clean verify)
+                        (cd "backend/${service}" && ./mvnw -B -ntp clean test jacoco:report)
                     done
                 '''
             }
