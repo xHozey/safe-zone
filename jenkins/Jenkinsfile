@@ -57,15 +57,45 @@ pipeline {
                 script {
                     for (service in ['gateway', 'userService', 'productService', 'mediaService', 'server']) {
                         echo "Analyzing backend/${service}"
+                        def projectKey = "buy-01-${service}"
                         sh 'find backend -type f -path "*/target/sonar/report-task.txt" -delete'
                         withSonarQubeEnv('SonarQube') {
                             dir("backend/${service}") {
-                                sh "./mvnw -B -ntp org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=buy-01-${service} -Dsonar.projectName=buy-01-${service} -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml"
+                                sh "./mvnw -B -ntp org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${projectKey} -Dsonar.projectName=${projectKey} -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml"
                             }
                         }
 
                         timeout(time: 5, unit: 'MINUTES') {
                             def qualityGate = waitForQualityGate(abortPipeline: false)
+
+                            withSonarQubeEnv('SonarQube') {
+                                sh """
+                                    set -eu
+                                    : "\${SONAR_HOST_URL:?SonarQube host URL is unavailable to Jenkins}"
+                                    : "\${SONAR_AUTH_TOKEN:?SonarQube token is unavailable to Jenkins}"
+                                    project_key='${projectKey}'
+                                    sonar_url="\${SONAR_HOST_URL%/}"
+                                    auth="\${SONAR_AUTH_TOKEN}:"
+
+                                    major_vulnerabilities=\$(curl --fail --silent --show-error --user "\$auth" \
+                                        "\$sonar_url/api/issues/search?componentKeys=\$project_key&types=VULNERABILITY&severities=MAJOR&ps=1" \
+                                        | jq --exit-status --raw-output '.total | numbers')
+                                    code_smells=\$(curl --fail --silent --show-error --user "\$auth" \
+                                        "\$sonar_url/api/issues/search?componentKeys=\$project_key&types=CODE_SMELL&ps=1" \
+                                        | jq --exit-status --raw-output '.total | numbers')
+
+                                    echo "SonarQube issue counts for \$project_key: major vulnerabilities=\$major_vulnerabilities, code smells=\$code_smells"
+                                    if [ "\$major_vulnerabilities" -gt 0 ]; then
+                                        echo "SonarQube found \$major_vulnerabilities major vulnerabilities in \$project_key"
+                                        exit 1
+                                    fi
+                                    if [ "\$code_smells" -gt 0 ]; then
+                                        echo "SonarQube found \$code_smells code smells in \$project_key"
+                                        exit 1
+                                    fi
+                                """
+                            }
+
                             if (!qualityGate || qualityGate.status != 'OK') {
                                 error "SonarQube quality gate failed for ${service}: ${qualityGate?.status ?: 'unknown'}"
                             }

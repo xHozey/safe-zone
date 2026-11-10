@@ -9,6 +9,7 @@ RUN apt-get update \
 		ca-certificates \
 		curl \
 		docker-compose \
+		jq \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& command -v docker \
