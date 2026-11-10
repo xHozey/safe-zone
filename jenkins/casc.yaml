@@ -75,9 +75,6 @@ jobs:
                 configuredByUrl(false)
 
                 traits {
-                  gitHubBranchDiscovery {
-                    strategyId(1)
-                  }
 
                   gitHubPullRequestDiscovery {
                     strategyId(1)
