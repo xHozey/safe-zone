@@ -21,12 +21,12 @@ credentials:
               id: sonarqube-token
               secret: "${SONAR_TOKEN}"
               description: SonarQube analysis token
-      - usernamePassword:
-          scope: GLOBAL
-          id: github-api
-          username: "${GITHUB_USERNAME}"
-          password: "${GITHUB_TOKEN}"
-          description: GitHub API access for Jenkins
+          - usernamePassword:
+              scope: GLOBAL
+              id: github-api
+              username: "${GITHUB_USERNAME}"
+              password: "${GITHUB_TOKEN}"
+              description: GitHub API access for Jenkins
 
 tool:
   nodejs:
@@ -71,6 +71,8 @@ jobs:
                 credentialsId('github-api')
                 repoOwner('xHozey')
                 repository('safe-zone')
+                repositoryUrl('https://github.com/xHozey/safe-zone')
+                configuredByUrl(false)
 
                 traits {
                   gitHubBranchDiscovery {
