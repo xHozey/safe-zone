@@ -92,7 +92,7 @@ pipeline {
                                     if [ "\$code_smells" -gt 0 ]; then
                                         echo "SonarQube found \$code_smells code smells in \$project_key"
                                         exit 1
-                                    fi
+                                    fididn’t
                                 """
                             }
 
