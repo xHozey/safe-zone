@@ -28,6 +28,7 @@ credentials:
               password: "${GITHUB_TOKEN}"
               description: GitHub API access for Jenkins
 
+
 tool:
   nodejs:
     installations:
