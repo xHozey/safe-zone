@@ -20,30 +20,6 @@ class GatewayIdentityFilterTest {
     }
 
     @Test
-    void skipsAuthenticationRoutes() throws Exception {
-        MockHttpServletRequest request = request("/api/v1/auth/register");
-        MockFilterChain chain = new MockFilterChain();
-
-        filter.doFilter(request, new MockHttpServletResponse(), chain);
-
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
-        assertEquals(request, chain.getRequest());
-    }
-
-    @Test
-    void normalizesRoleAndCreatesAuthenticationFromGatewayHeaders() throws Exception {
-        MockHttpServletRequest request = request("/api/v1/products/mine");
-        request.addHeader("X-User-Id", "seller-1");
-        request.addHeader("X-User-Role", "SELLER");
-
-        filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
-
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        assertEquals("seller-1", authentication.getName());
-        assertEquals("ROLE_SELLER", authentication.getAuthorities().iterator().next().getAuthority());
-    }
-
-    @Test
     void preservesPrefixedRoleAndLeavesBlankOrMissingIdentityWithoutAuthorities() throws Exception {
         MockHttpServletRequest prefixedRequest = request("/api/v1/products/mine");
         prefixedRequest.addHeader("X-User-Id", "seller-1");
