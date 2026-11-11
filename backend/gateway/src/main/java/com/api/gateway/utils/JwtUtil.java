@@ -15,7 +15,7 @@ import io.jsonwebtoken.security.Keys;
 public class JwtUtil {
     private final Key secretKey;
 
-    public JwtUtil(@Value("${jwt.secret}") String secret) {
+    public JwtUtil(@Value("buy01-user-service-jwt-secret-key-change-me-2026") String secret) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
