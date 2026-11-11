@@ -40,6 +40,7 @@ tool:
                     npmPackagesRefreshHours: 72
 
 
+
 unclassified:
   sonarGlobalConfiguration:
     installations:
