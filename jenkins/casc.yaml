@@ -39,6 +39,8 @@ tool:
                     id: "22.16.0"
                     npmPackagesRefreshHours: 72
 
+
+
 unclassified:
   sonarGlobalConfiguration:
     installations:
